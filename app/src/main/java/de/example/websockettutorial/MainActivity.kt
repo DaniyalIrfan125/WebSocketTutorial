@@ -8,6 +8,7 @@ import com.squareup.moshi.Moshi
 import kotlinx.android.synthetic.main.activity_main.*
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
+import org.json.JSONObject
 import java.lang.Exception
 import java.net.URI
 import javax.net.ssl.SSLSocketFactory
@@ -36,8 +37,15 @@ class MainActivity : AppCompatActivity() {
 
         createWebSocketClient(coinbaseUri)
 
-        val socketFactory: SSLSocketFactory = SSLSocketFactory.getDefault() as SSLSocketFactory
-        webSocketClient.setSocketFactory(socketFactory)
+//        val socketFactory: SSLSocketFactory = SSLSocketFactory.getDefault() as SSLSocketFactory
+//        webSocketClient.setSocketFactory(socketFactory)
+
+//        webSocketClient.setConnectTimeout(10000)
+//        webSocketClient.setReadTimeout(60000)
+//        webSocketClient.addHeader("Origin", "http://developer.example.com")
+//        webSocketClient.enableAutomaticReconnection(5000)
+
+       // webSocketClient.
         webSocketClient.connect()
     }
 
@@ -56,7 +64,7 @@ class MainActivity : AppCompatActivity() {
 
             override fun onClose(code: Int, reason: String?, remote: Boolean) {
                 Log.d(TAG, "onClose")
-                unsubscribe()
+           //    unsubscribe()
             }
 
             override fun onError(ex: Exception?) {
@@ -64,23 +72,42 @@ class MainActivity : AppCompatActivity() {
             }
 
         }
+
+
     }
 
     private fun subscribe() {
+//        webSocketClient.send(
+//            "{\n" +
+//                    "    \"type\": \"subscribe\",\n" +
+//                    "    \"channels\": [{ \"name\": \"ticker\", \"product_ids\": [\"BTC-EUR\"] }]\n" +
+//                    "}"
+//        )
+
+//        webSocketClient.send(
+//            "{\"symbol\": \"ADA/USDT\"}"
+//        )
+
+//
+//        webSocketClient.send(
+//            JSONObject()
+//                .put("method", "MARKET_CAPITAL")
+//                .toString())
+
         webSocketClient.send(
-            "{\n" +
-                    "    \"type\": \"subscribe\",\n" +
-                    "    \"channels\": [{ \"name\": \"ticker\", \"product_ids\": [\"BTC-EUR\"] }]\n" +
-                    "}"
-        )
+            JSONObject()
+                .put("method", "ORDER_BOOK")
+                .put("symbol", "ADA/USDT")
+                .toString())
+
     }
 
     private fun setUpBtcPriceText(message: String?) {
         message?.let {
             val moshi = Moshi.Builder().build()
-            val adapter: JsonAdapter<BitcoinTicker> = moshi.adapter(BitcoinTicker::class.java)
+            val adapter: JsonAdapter<DemoData> = moshi.adapter(DemoData::class.java)
             val bitcoin = adapter.fromJson(message)
-            runOnUiThread { btc_price_tv.text = "1 BTC: ${bitcoin?.price} €" }
+            runOnUiThread { btc_price_tv.text = "1 BTC: ${bitcoin?.data} €" }
         }
     }
 
@@ -94,7 +121,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
-        const val WEB_SOCKET_URL = "wss://ws-feed.pro.coinbase.com"
+        const val WEB_SOCKET_URL = "ws://54.173.26.51/banking/stream"
         const val TAG = "Coinbase"
     }
 
